@@ -83,20 +83,16 @@
           Payer
         </button>
       </form>
-      <PaymentStatus :status="paymentStatus" />
     </div>
   </div>
 </template>
 
 <script>
-import PaymentStatus from "./PaymentStatus.vue";
 import { processPayment } from "../api/paymentApi";
 import { validateField } from "../utils/validators";
 
 export default {
-  components: {
-    PaymentStatus,
-  },
+  name: "PaymentForm",
   data() {
     return {
       form: {
@@ -115,14 +111,14 @@ export default {
         email: null,
         phone: null,
       },
-      paymentStatus: null,
     };
   },
   computed: {
     isFormValid() {
       return (
         !Object.values(this.errors).some((error) => error !== null) &&
-        Object.values(this.form).every((field) => field !== "") &&
+        this.form.amount &&
+        this.form.paymentMethod &&
         this.form.customer.name &&
         this.form.customer.email &&
         this.form.customer.phone
@@ -136,15 +132,10 @@ export default {
     async handlePayment() {
       try {
         const response = await processPayment(this.form);
-        this.paymentStatus = {
-          status: "success",
-          message: `Paiement réussi ! Transaction ID: ${response.transactionId}`,
-        };
+        // Redirection vers la page de confirmation
+        this.$router.push(`/confirmation/${response.transactionId}`);
       } catch (error) {
-        this.paymentStatus = {
-          status: "error",
-          message: "Échec du paiement. Veuillez réessayer.",
-        };
+        alert("Échec du paiement. Veuillez réessayer.");
       }
     },
   },
@@ -235,8 +226,7 @@ label {
 }
 
 .btn:hover:not(:disabled) {
-  background: #1A654E
-;
+  background: #1A654E;
   transform: translateY(-2px);
 }
 
